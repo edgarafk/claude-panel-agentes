@@ -1,6 +1,7 @@
 export type AgentRow = {
   id: string
   type: string
+  model: string
   task: string
   status: 'en marcha' | 'terminado' | 'fallido' | 'detenido'
   lastAction: string
