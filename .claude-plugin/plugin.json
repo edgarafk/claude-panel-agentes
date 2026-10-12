@@ -1,6 +1,6 @@
 {
   "name": "panel-agentes",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Panel con guía de cada tipo de agente y monitor en vivo de lo que hacen",
   "types": "./types/index.d.ts",
   "author": {
