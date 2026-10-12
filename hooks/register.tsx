@@ -8,6 +8,15 @@ const TITLE = 'Agentes'
 const CLOSE_DELAY_MS = 15_000
 const agents = atom({ plugin: 'panel-agentes', key: 'agents' } as const, [])
 
+// Enrutado: qué modelo usa cada tipo de agente. Lo que no aparece hereda el modelo de la sesión.
+// Si quien lanza el agente pide un modelo concreto, se respeta.
+const ROUTES: Record<string, string> = {
+  Explore: 'haiku',
+  'claude-code-guide': 'haiku',
+  'statusline-setup': 'haiku',
+  Plan: 'opus',
+}
+
 const GUIDE: { name: string; does: string; when: string }[] = [
   { name: 'general-purpose', does: 'Investiga, busca y ejecuta tareas de varios pasos con todas las herramientas.', when: 'Tareas amplias o búsquedas en las que no sabes dónde está la respuesta.' },
   { name: 'claude', does: 'Agente comodín: hace cualquier cosa que no encaje en otro tipo.', when: 'Cuando ningún agente especializado encaja.' },
@@ -52,11 +61,13 @@ export const register: Register = on => {
   })
 
   on('agent.spawn', async ($, e, next) => {
-    const res = await next(e)
+    const routed = e.model ?? ROUTES[e.subagentType]
+    const res = await next(routed ? { ...e, model: routed } : e)
     if (res.agentId) {
       const row: AgentRow = {
         id: res.agentId,
         type: e.subagentType,
+        model: res.model,
         task: e.description,
         status: 'en marcha',
         lastAction: 'arrancando…',
@@ -114,7 +125,7 @@ export const register: Register = on => {
         {[...list].reverse().map(a => (
           <Box flexDirection="column" marginBottom={1}>
             <Text dimColor={a.status !== 'en marcha'}>
-              {ICON[a.status]} {a.type} · {a.task}
+              {ICON[a.status]} {a.type} [{a.model}] · {a.task}
             </Text>
             <Text dimColor>
               {'  '}{a.status} · {a.actions} acciones · {ago((a.endedAt ?? now) - a.startedAt)}
@@ -125,7 +136,9 @@ export const register: Register = on => {
         <Text bold>Guía · qué hace cada agente</Text>
         {GUIDE.map(g => (
           <Box flexDirection="column" marginBottom={1}>
-            <Text bold>{g.name}</Text>
+            <Text bold>
+              {g.name} → {ROUTES[g.name] ?? 'modelo de la sesión'}
+            </Text>
             <Text>{g.does}</Text>
             <Text dimColor>Úsalo para: {g.when}</Text>
           </Box>
