@@ -1,0 +1,5 @@
+{
+  "name": "edgar-mods",
+  "owner": { "name": "Edgar" },
+  "plugins": [{ "name": "panel-agentes", "source": "./" }]
+}
